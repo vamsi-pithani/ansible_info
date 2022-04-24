@@ -1,0 +1,35 @@
+#by default if any task is failed, ansible  won't proceed with next tasks
+#but by using this we can rescue tasks and fix the issues then got next task by blocking the failed task 
+
+---
+- hosts: all
+  tasks:
+
+   - name: create a user
+     user:
+        name: amar
+        state: present
+   - name: install git
+     yum:
+       name: git
+       state: latest
+   - name: block and rescue
+     block:
+     - name: start service
+       service:
+         name: git
+         state: started
+     rescue:
+     - name: uninstall git
+       yum:
+         name: git
+         state: absent
+   - name: install httpd
+     package:
+       name:
+          - httpd
+       state: installed
+   - name: start service for httpd
+     service:
+       name: httpd
+       state: started

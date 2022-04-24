@@ -1,0 +1,28 @@
+#create a docker container using ansible
+#In order for Ansible to be able to deploy containers you’ll also need to 
+#install the following Python module using the same version of Python that Ansible 
+# pip install docker-py
+
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: install docker
+      yum:
+        name: docker
+        state: present
+    - name: install docker
+      service:
+        name: docker
+        state: started
+    - name: deploy nginx docker container
+      docker_container:
+       image: nginx
+       name: nginx
+       state: started
+       #auto_remove: true  (based on python version)
+       ports:
+          - "8080:80"
+
+
+ 

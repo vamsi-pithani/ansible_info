@@ -1,0 +1,16 @@
+#success a task forcefully using changed_when condition
+
+---
+ - hosts: dev
+   tasks:
+    - shell: rpm -q httpd | head -n 1
+      args:
+         warn: false
+      register: result
+      changed_when: false
+    - fail:
+        msg: "failed because httpd is already installed"
+      when: "'not installed' not in result.stdout"
+    - yum:
+        name: httpd
+        state: present

@@ -1,0 +1,30 @@
+# When you install RHEL/CentOS or several derivatives, the SELinux feature or service is enabled by default, 
+# due to this some applications on your system may not actually support this security mechanism. 
+# Therefore, to make such applications function normally, you have to disable or turn off SELinux.
+#Firewall is security software for block unauthorized others connection.selinux is Linux-based security software.
+
+
+# tasks for ansible-disable-selinux
+# check status by vi /etc/selinux/config
+---
+  - hosts: localhost 
+    tasks:
+    - name: Install libselinux as prerequisite for SELinux Ansible module
+      package:
+        name: "{{item}}"
+        state: latest
+      with_items:
+        - libselinux-python
+        - libsemanage-python
+
+    - name: Disable SELinux
+      selinux:
+        policy: targeted
+        state: disabled
+        
+# enable selinux on next reboot
+#    - name: enable SELinux at next reboot based on type
+#      selinux:
+#        policy: targeted
+#        state: enforcing
+

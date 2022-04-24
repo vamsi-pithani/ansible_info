@@ -1,0 +1,15 @@
+#Check user exist or not and if no user create a user?
+---
+ - hosts: localhost
+   tasks:
+   - name: check for user
+     block:
+     - name: check for user
+       command:
+          id amar
+     rescue:
+      - name: create user
+        user:
+         name: amar
+         state: present
+    

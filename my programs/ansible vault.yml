@@ -1,0 +1,36 @@
+#ansible vault:used to hide senstive data in play books
+#in this example we are creating 3 files created seperately
+# for cloning git pvt repo we need username and password
+# file 1 
+#vi gitvault.yaml
+
+---
+ - name: Clone a github repository
+   vars_files: 
+        - gitcred.yaml
+   hosts: localhost    
+   tasks:
+   - name: Cloning
+     git: 
+       repo: https://{{ username}}:{{password}}@github.com/vamsiharikanth/testing.git
+       dest: /git
+       clone: yes
+       update: yes
+
+# file 2
+# vi gitcred.yaml 
+---
+username: vamsiharikanth
+password: vamsi1234
+
+# after creating gitcred.yaml encrypt  using  ansible-vault encrypt gitcred.yaml
+# set vault password 
+
+# run playbook: ansible-playbook git.yaml --ask-vault-pass 
+
+# file3
+ # vi pass.yaml
+---
+password: <vaultpassword>
+
+# run playbook: ansible-playbook git.yaml --vault-password-file pass.yaml

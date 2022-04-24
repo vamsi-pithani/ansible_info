@@ -1,0 +1,36 @@
+#handlers are special tasks that only get executed when triggered via the notify directive. 
+#handlers are executed at the end of the play, once all tasks are finished.
+#In Ansible, handlers are typically used to start, reload, restart, and stop services.
+#If your playbook involves changing configuration files, there is a high chance that 
+#you’ll need to restart a service so that the changes take effect.
+
+---
+- hosts: all
+  tasks: 
+  - name: install httpd
+    yum:
+     name: httpd
+     state: installed
+    when: ansible_os_family == "RedHat"
+  - name: copy configuration file of httpd from application template
+    copy:
+     src: httpd.conf
+     dest: /etc/httd/conf
+    notify: restart service
+# whenever conf file has changes it will restart otherwise start state only
+  - name: start application
+    service:
+     name: httpd
+     state: started
+
+
+
+
+
+
+#at end of play book and name should be same as notify value
+  handlers:
+  - name: restart service
+    service:
+     name: httpd
+     state: restarted

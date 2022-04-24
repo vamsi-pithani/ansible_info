@@ -1,0 +1,12 @@
+# when condition is similar to if condition -- if it satisfies the condition then only it will execute
+# use cases like we have to remove old debian servers etc..,
+# ansible -m setup dev | grep 'os'
+
+---
+ - hosts: all
+   tasks:
+   - name: install httpd only on redhat servers
+     yum:
+      name: httpd
+      state: installed
+     when: ansible_os_family == "RedHat"

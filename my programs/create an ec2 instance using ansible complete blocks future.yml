@@ -1,0 +1,124 @@
+---
+ - name: provisioning EC2 instances using Ansible 
+   hosts: localhost
+   connection: local
+   gather_facts: False
+   tags: provisioning
+
+   vars_prompt: # asks for variables if private=yes i/p is not visible
+    - name: keypair
+   prompt: "enter key_pair_name"
+   private: no
+    - name: instance_type
+   prompt: "enter type of instance"
+   private: no
+    - name: image
+   prompt: "enter image id"
+   private: no
+    - name: security_group
+   prompt: "enter security group name"
+   private: no
+    - name: count
+   prompt: "enter number of ec2 instances"
+   private: no
+    - name: region
+   prompt: "enter the region"
+   private: no
+
+   vars:
+     keypair_name: "{{ keypair }}"
+     instancetype_name: "{{ instancetype }}"
+     image_name: "{{ image }}"
+     securitygroup_name: "{{ securitygroup }}"
+     count_number: "{{ count }}"
+     region_name: "{{ region }}"
+   
+   tasks:
+    - name: Create project VPC
+      ec2_vpc_net:
+        name: "{{ vpc.aws_vpc_name }}"
+        cidr_block: 10.0.0.0/16
+        region: "{{ region_name }}"
+        tenancy: default
+        state: present
+      register: vpc_result
+      tags:
+        name: ansible_vpc
+        app: ansible
+        env: dev
+    - name: Create subnet
+      ec2_vpc_subnet:
+        region: "{{ region_name }}"
+        state: present
+        vpc_id: "{{ vpc_result.vpc.id }}"
+        az: "{{ region }}" #The availability zone for the subnet.
+        cidr: 10.0.1.0/24
+        map_public: true
+        resource_tags:
+           Name: subnet1
+           register: subnet_result
+      tags:
+         name: ansible_subnet
+         app: ansible
+         env: dev
+    - name: create internet gate way
+      ec2_vpc_igw:
+        region: "{{ region_name }}"
+        vpc_id: "{{ vpc_result.vpc.id }}"
+        state: present
+      register: igw_result
+      tags:
+        name: igw
+        env: dev
+        app: ansible
+    - name: route to igw
+      ec2_vpc_route_table:
+        vpc_id: "{{ vpc_result.vpc.id }}"
+        region: "{{ region_name }}"
+        tags:
+          name: Public
+          subnets:
+          - "{{ subnet_result.subnet.id }}"
+          routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw_result.gateway_id }}"
+      register: rt_result
+    - name: create security group
+      ec2_group:
+        name: "{{ securitygroup_name}}"
+        description: an prod EC2 group
+        vpc_id: "{{ vpc_result.vpc.id }}"
+        region: "{{ region_name }}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+    - name: create an ec2 instance
+      ec2:
+        key_name: "{{ keypair_name }}" 
+        instance_type: "{{ instancetype_name }}"
+        image: "{{ image_name}}"
+        region: "{{ region_name}}"
+        group: "{{securitygroup_name }}"
+        count: "{{ count }}"
+        vpc_subnet_id: "{{ vpc_result.subnet.id }}"
+        wait: yes
+        assign_public_ip: yes
+        instance_tags:
+        name: ec2 instance
+        app: ansible
+        env: dev
+        os: linux
+        register: ec2

@@ -1,0 +1,13 @@
+---
+- name: replace a line or word in a file using ansible playbook
+  hosts: all
+  tasks:
+   - name: replace word
+     replace:
+      path: /etc/ansible/target
+      regexp: "vamsi"
+      replace: "amar"
+
+
+      # create a file  target in /etc/anible with a key words vamsi
+

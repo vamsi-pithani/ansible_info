@@ -1,0 +1,27 @@
+# here shell is just fetching information about httpd installed or not  but  our objective is install httpd if not installed in server
+#by using fail module , when condition we are failing the task if httpd is already installed. otherwise it will install httpd 
+# by passing  registry value to when condition we are acheving this 
+
+---
+- hosts: test
+  tasks: 
+  - shell: rpm -q httpd | head -n1
+    args: 
+      warn: false   # set warn=false to prevent warning
+    register: result 
+  - debug:
+       var: result
+    changed_when: false
+  - fail:
+       msg: "Failed because httpd is already installed"
+    when: "'not installed' not in result.stdout"
+  - yum:
+       name: httpd
+       state: present
+
+
+#Ansible failed_when and changed_when statements are similar to ansible when statement.  
+#The only difference is that It will mark the task as failed or Success[changed], 
+#when the condition defined, is met or satisfied.
+# if we  use changed_when  even play has failed tasks it will show as changed or success
+# from above  ok=4 skipped=1 changed=3 or ok=4 changed=2  failed=1

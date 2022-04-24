@@ -1,0 +1,14 @@
+---
+ - name: Clone a github repository
+   hosts: localhost    
+   tasks:
+   - name: Cloning
+     git:
+       repo: https://github.com/vamsiharikanth/testing.git
+       dest: /git
+       clone: yes
+       update: yes
+
+       #clones git repository in /git folder in localhost machine
+       # if it is private repo
+       #repo: https://username:password@github.com/vamsiharikanth/testing.git
